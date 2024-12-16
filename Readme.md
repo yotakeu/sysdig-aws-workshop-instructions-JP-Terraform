@@ -28,7 +28,7 @@ Sysdigのハンズオンワークショップへようこそ。このワーク�
     1. ![](instruction-images/instances2.png)
 1. **Session Manager**タブを選択し、**Connect**ボタンをクリックします。
     1. ![](instruction-images/connect.png)
-1. ターミナルウィンドウが開いたら、`sudo bash` と入力してから、`cd /root` と入力します。
+1. ターミナルウィンドウが開いたら、`sudo bash` と入力してから、`cd ~` と入力します。
     1. **注意:** セッションマネージャーセッション（ターミナルウィンドウ）を閉じて再度開くと、rootユーザーとそのホームディレクトリに戻るために、これら2つのコマンドを再度実行する必要があります。
 1. `kubectl get pods -A`と入力すると、EKSクラスタ内の実行中のPodの一覧が表示されます。
 
@@ -70,7 +70,7 @@ Sysdigのハンズオンワークショップへようこそ。このワーク�
         1. これは、深刻なリモートコード実行(RCE)の脆弱性をシミュレートしています。
             1. このアプリを使って、脆弱性が悪用された時に何を検知するかをテストすることができます。
     1. ジャンプボックスのセッションマネージャ端末のブラウザタブに戻ってください。
-    1. security-playground サービスに対して実行するいくつかの **curl** コマンド例を含むスクリプトを見るために、`cat ./example-curls.sh` と入力してください。このスクリプトは以下を実行します：
+    1. security-playground サービスに対して実行するいくつかの **curl** コマンド例を含むスクリプトを見るために、`cat ./01-01-example-curls.sh` と入力してください。このスクリプトは以下を実行します：
         1. 機密パス **/etc/shadow** の読み取り。
         1. ファイルを **/bin** に書き込み、**chmod +x** して実行する。
         1. **apt**から**nmap**をインストールし、ネットワークスキャンを実行する。
@@ -81,7 +81,7 @@ Sysdigのハンズオンワークショップへようこそ。このワーク�
         1. KubernetesのCLIである**kubectl**を使って、別の悪意のあるワークロードを起動する（security-playgroundのために過剰な権限でプロビジョニングされたKubernetesのServiceAccountを悪用する）。
         1. security-playground PodからNodeのAWS EC2 Instance Metadataエンドポイントに対して**curl**コマンドを実行する。
         1. 最後に、xmrig クリプトマイナーを実行する。
-    1. 次に、`./example-curls.sh`と入力してスクリプトを実行し、攻撃者の視点から返されるすべての出力を確認してください。
+    1. 次に、`./01-01-example-curls.sh`と入力してスクリプトを実行し、攻撃者の視点から返されるすべての出力を確認してください。
     1. 次に、Sysdig UIタブに戻り、ブラウザのタブを更新します。
         1. どのクラスタ、ネームスペース、Pod からランタイムイベントが発生しているかを示す円形の視覚化/ヒートマップが左側に表示されます。
         1. また、右側の **Summary** タブにはそれらのイベントのサマリーが、**Events** タブにはそれらのイベントの完全なタイムラインが表示されます。
@@ -181,7 +181,7 @@ Sysdig AgentはどのLinuxマシンにもインストールすることができ
 
 オリジナルのKubernetes PodSpec [こちら](https://github.com/jasonumiker-sysdig/example-scenarios/blob/main/k8s-manifests/04-security-playground-deployment.yaml) と、restrictedのPSAをパスするために必要なすべての変更を加えたアップデート版 [こちら](https://github.com/jasonumiker-sysdig/example-scenarios/blob/main/k8s-manifests/07-security-playground-restricted-deployment.yaml) を確認することができます。
 
-1から3が修正された状態で、私たちの攻撃がどうなるかを確認するには、`./example-curls-restricted.sh`を実行してください（前回とは異なるsecurity-playground-restrictedのポート/サービスを宛先とするだけで、内容は前回のファイルと同じです）。以下の点に注目してください：
+1から3が修正された状態で、私たちの攻撃がどうなるかを確認するには、`./01-02-example-curls-restricted.sh`を実行してください（前回とは異なるsecurity-playground-restrictedのポート/サービスを宛先とするだけで、内容は前回のファイルと同じです）。以下の点に注目してください：
 * コンテナ内でroot権限を必要とするもの（/etc/shadowの読み込み、/binへの書き込み、aptからのパッケージのインストールなど）は、Pythonアプリがそれを実行する権限を持っていないため、**500 Internal Server Error** で失敗します。
 * **root**と**hostPid**と**privileged**がないので、コンテナをエスケープできませんでした。
 * 唯一うまくいったのは、ノードのEC2メタデータエンドポイントを叩くことと、xmrig crypto minerをユーザーのホームディレクトリにダウンロード/実行することでした。
@@ -189,14 +189,14 @@ Sysdig AgentはどのLinuxマシンにもインストールすることができ
 また、SysdigでContainer Driftの防止（コンテナ稼働時に追加された新しい実行可能ファイルを実行できないようにする）を有効にすると、EC2インスタンスのメタデータへのアクセス以外はすべてブロックされます。この設定を確認するには：
 * **Policies > Threat Detection > Runtime Policies** に移動し、**security-playground-restricted-nodrift**ポリシーを確認します。他のネームスペースのようにドリフトを検知するだけではなく、ワークロードが**security-playground-restricted-nodrift**ネームスペースにある場合には**ブロック**（Prevent Drift）することに注目してください。
 * ![](instruction-images/drift_prevent_policy.png)
-* `./example-curls-restricted-nodrift.sh` を実行します。同じcurlを実行しますが、直前の例のように制限されているワークロードに対して実行し、かつContainer Driftの防止（検知だけでなく）が有効になっています。
+* `./01-03-example-curls-restricted-nodrift.sh ` を実行します。同じcurlを実行しますが、直前の例のように制限されているワークロードに対して実行し、かつContainer Driftの防止（検知だけでなく）が有効になっています。
     1. Sysdig UI の Insights で結果のイベントを見ると、今回は Drift が検知されただけでなく、**防止**されたことがわかります。
     1. ![](instruction-images/driftprevented.png)
 
 また、マルウェアを検知するだけでなく、ブロックすることもできるようになりました。
 それを確認するには：
 * **Policies > Threat Detection > Runtime Policies**に移動し、**security-playground-restricted-nomalware**ポリシーを確認してください。他のNamespaceのように単にマルウェアを検知するだけではなく、ワークロードが**security-playground-restricted-nomalware**ネームスペースにある場合は**ブロック**（Prevent Malware）することに注目してください。
-* `./example-curls-restricted-nomalware.sh`を実行します。同じcurlを実行しますが、Sysdigがマルウェアを検知するだけでなくマルウェアを防止しています。ただし、Container Driftはブロックしていません。
+* `./01-04-example-curls-restricted-nomalware.sh`を実行します。同じcurlを実行しますが、Sysdigがマルウェアを検知するだけでなくマルウェアを防止しています。ただし、Container Driftはブロックしていません。
     1. Sysdig UI の Insights で結果のイベントを見ると、マルウェアが検知されただけでなく、**実行を阻止**されたことがわかります。
     1. ![](instruction-images/malware.png)
 
@@ -204,7 +204,7 @@ Sysdig AgentはどのLinuxマシンにもインストールすることができ
 
 最後に、security-playground-restricted を変更して、security-playground のようにセキュリティを弱体化させるテストをしてみましょう。以下のコマンドを実行して、安全でないコンテナイメージとPodSpecをそのネームスペースにデプロイしてみてください。
 
-`kubectl apply -f security-playground-test.yaml`
+`kubectl apply -f 01-cfg-security-playground-test.yaml`
 
 **security-playground-restricted**ネームスペースではPSAで制限されているため許可されないと警告されていることに注目してください。
 ![](instruction-images/psa.png)
@@ -288,9 +288,9 @@ IAM RoleのARNから辿ることで確認できますが、このIAM Roleは次�
 ```
 
 ### Exploit
-実行時にAWS CLIをコンテナにインストールし、いくつかのコマンドを実行すると、PodにIRSAロールが割り当てられているかどうかがわかります。/rootに**example-curls-bucket-public.sh**ファイルがあるので、`cat example-curls-bucket-public.sh`で内容を確認して、`./example-curls-bucket-public.sh`を実行します。
+実行時にAWS CLIをコンテナにインストールし、いくつかのコマンドを実行すると、PodにIRSAロールが割り当てられているかどうかがわかります。/rootに**02-01-example-curls-bucket-public.sh**ファイルがあるので、`cat 02-01-example-curls-bucket-public.sh`で内容を確認して、`./02-01-example-curls-bucket-public.sh`を実行します。
 
-AWS CLIのインストールは成功しましたが、S3の変更はアクセス権がないので失敗します（エラーは表示されません）。S3コンソールでこのバケットを見ると、パブリックに変更されていません。security-playground Deploymentのマニフェストを更新し、これまで使用していた**default**のサービスアカウントではなく、この**irsa**サービスアカウントを使用するようにしましょう。この変更を適用するには、`kubectl apply -f security-playground-irsa.yaml`を実行します。ここで、`./example-curls-bucket-public.sh`を再実行すると、今度はうまくいきます！
+AWS CLIのインストールは成功しましたが、S3の変更はアクセス権がないので失敗します（エラーは表示されません）。S3コンソールでこのバケットを見ると、パブリックに変更されていません。security-playground Deploymentのマニフェストを更新し、これまで使用していた**default**のサービスアカウントではなく、この**irsa**サービスアカウントを使用するようにしましょう。この変更を適用するには、`kubectl apply -f 02-cfg-security-playground-irsa.yaml`を実行します。ここで、`./02-01-example-curls-bucket-public.sh`を再実行すると、今度はうまくいきます！
 
 S3コンソールでこのバケットを見ると、今度はバケット（とそのすべてのコンテンツ）がパブリックになっていることがわかるでしょう（そして、攻撃者はS3のパブリックAPIからすぐにダウンロードすることができます）！
 ![](instruction-images/bucketpublic.png)
