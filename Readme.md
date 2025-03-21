@@ -38,17 +38,17 @@ Sysdigのハンズオンワークショップへようこそ。このワーク�
 講師から Sysdig へのログイン名とパスワードを受け取っているはずです（パスワードはAWSログインのパスワードと同じです）。自分の環境にサインインします：
 
 1. ウェブブラウザを開き、https://app.au1.sysdig.com/secure/ にアクセスします。
-1. 自身に提供されたメールアドレスとパスワードを入力し、**Log in**ボタンをクリックします。
-1. Sysdig エクスペリエンスのカスタマイズ画面が表示されたら、右下の **Get into Sysdig** ボタンをクリックし、**Home** 画面に移動します。
+1. 自身に提供されたメールアドレスとパスワードを入力し、**Log in**ボタンをクリックしてログインします。
+1. （オプション）Sysdig エクスペリエンスのカスタマイズ画面が表示された場合は、右下の **Get into Sysdig** ボタンをクリックし、**Home** 画面に移動します。
     1. ![](instruction-images/sysdigexperience.png)
 
 ## モジュール 1 - ランタイム脅威の検知と防御 (Workload/Kubernetes)
 
 最初のモジュールでは、ランタイム脅威の検知と防御に関する Sysdig の機能について説明します。
 
-攻撃者がどのように侵入してくるかにかかわらず、攻撃者の行動は多くの点で共通しています。予測可能な一連の行動は、[MITRE ATT&CK Framework](https://attack.mitre.org/)によって詳細に説明されています。Sysdigの脅威リサーチチームは、世界中に大規模なハニーポットを設置し、攻撃者が侵入後にどのような行動を取るかを直接学んでいます。そして、すべてのお客様に代わって、[Rules](https://docs.sysdig.com/en/docs/sysdig-secure/policies/threat-detect-policies/manage-rules/) (何を検知べきか)と[Managed Policies](https://docs.sysdig.com/en/docs/sysdig-secure/policies/threat-detect-policies/manage-policies/) (見つけたときに何をすべきか)のライブラリを継続的に更新しています。また、ご希望であれば、弊社が提供するものを超えて、お客様独自のカスタム（Falco）ルールおよび(または)ポリシーを作成することも可能です - これは完全に透過的であり、魔法のブラックボックスではなく、オープンソースのツール/標準に基づいています！
+攻撃者がどのように侵入してくるかにかかわらず、攻撃者の行動は多くの点で共通しています。予測可能な一連の行動は、[MITRE ATT&CK Framework](https://attack.mitre.org/)によって詳細に説明されています。Sysdigの脅威リサーチチームは、世界中に大規模なハニーポットを設置し、攻撃者が侵入後にどのような行動を取るかを直接学んでいます。そして、[Rules](https://docs.sysdig.com/en/docs/sysdig-secure/policies/threat-detect-policies/manage-rules/) (何を検知べきか)と[Managed Policies](https://docs.sysdig.com/en/docs/sysdig-secure/policies/threat-detect-policies/manage-policies/) (見つけたときに何をすべきか)のライブラリを継続的に更新しています。また、ご希望であればお客様独自のカスタムルールおよびポリシーを作成することも可能です。これらはブラックボックスではなく完全に透過的で、オープンソースの標準に基づいています。
 
-当社のAgentは、お客様の**ポリシー**で定義された様々な活動に対して、継続的に**ルール**と照らし合わせ、**イベント**を見つけたときに関連するすべてのコンテキストとともにリアルタイムでトリガーします。監視対象として下記以外にも、他の一般的なクラウド/SaaSサービスなどが近日中にさらに追加される予定です（GitHub、Oktaなど）：
+当社のAgentは、お客様の**ポリシー**で定義された様々な活動に対して、継続的に**ルール**と照らし合わせ、**イベント**を見つけたときに関連するすべてのコンテキストと共にリアルタイムでトリガーします。監視対象として下記以外にも、他の一般的なクラウド/SaaSサービスなどがあります（GitHub、Oktaなど）：
 * ノード/コンテナのLinuxカーネルシステムコール
 * Kubernetesの監査証跡
 * AWS、Azure、GCPの監査証跡
@@ -56,7 +56,7 @@ Sysdigのハンズオンワークショップへようこそ。このワーク�
 伝統的な "ルール/ポリシー "ベースのアプローチに加え、脅威検知/防止機能を強化する3つの機能があります：
 * [ドリフト・コントロール](https://docs.sysdig.com/en/docs/sysdig-secure/policies/threat-detect-policies/manage-policies/container-drift/) - コンテナ・イメージに含まれていない実行可能ファイルの実行を検知し、オプションでその実行をブロックすることができます。
 * [クリプトマイニングML検知](https://docs.sysdig.com/en/docs/sysdig-secure/policies/threat-detect-policies/manage-policies/machine-learning/) - クリプトマイニングの検知に特化した機械学習モデルを採用しています。
-* マルウェア（プレビュー） - 実行しようとするマルウェア（私たちがウォッチしているいくつかの脅威フィードで定義されている）を検知することができます。
+* マルウェア検知 - 実行しようとするマルウェア（私たちがウォッチしているいくつかの脅威フィードで定義されている）を検知することができます。
 
 ### Sysdig 内でイベントを生成するための攻撃のシミュレーション
 
@@ -101,9 +101,6 @@ Sysdigのハンズオンワークショップへようこそ。このワーク�
         1. **Drift Detection** - 元のイメージにはなかった実行ファイルがコンテナに追加され、それが実行された。
             1. 実行時にコンテナに変更を加えるのはベストプラクティスではありません。むしろ、新しいイメージをビルドし、イミュータブル（不変）パターンでサービスを再デプロイすべきです。
         1. **Launch Package Management Process in Container** - **Drift Detection**と同様に、実行中のコンテナでapt/yum/dnfを使用してパッケージを追加または更新すべきではありません。その代わりに、コンテナイメージのビルドプロセスの一部として、**Dockerfile**で実行してください。
-        1. **Suspicious network tool downloaded and launched in container** - 攻撃者がスキャンを実行し、悪用したワークロードがどのネットワークにあるのか、つまり他に何ができるのかを調べようとするのは、一般的な初期段階の行動です。
-        1. **The docker client is executed in a container** - これは **docker** CLI だけでなく、**crictl** や **kubectl** といった他のコンテナ CLI の実行を含みます。
-            1. コンテナがKubernetesクラスタ上のコンテナランタイム/ソケットと直接会話しようとするのは珍しいことです！
         1. **Contact EC2 Instance Metadata Service From Container** - EKS Podsは、[IAM Roles for Service Accounts (IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) などの他の手段を使ってAWSとやり取りする必要があります。その代わりにノードを経由して認証情報を使用するのは疑わしい行動です。
         1. **Malware Detection** - Sysdigは脅威フィードから多くのマルウェアのファイル名とハッシュを探し出します。ここで検知されたクリプトマイナーのxmrigも対象の一つです。
             1. マルウェアの実行をブロックすることもできます！（この後のラボで実際に試します）
@@ -132,7 +129,7 @@ Sysdig AgentはどのLinuxマシンにもインストールすることができ
 1. PodSpecは[**hostPID: true**](https://github.com/jasonumiker-sysdig/example-scenarios/blob/3da34f8429bd26b82a3ee2f052d2b654d308990f/k8s-manifests/04-security-playground-deployment.yaml#L18)と[privrivileged **securityContext**](https://github.com/jasonumiker-sysdig/example-scenarios/blob/3da34f8429bd26b82a3ee2f052d2b654d308990f/k8s-manifests/04-security-playground-deployment.yaml#L35)を持っていたため、コンテナ境界(実行中のLinuxネームスペース)からホストにエスケープすることができました。
 1. 攻撃者は、実行時に**nmap**や暗号マイナーの**xmrig**のような新しい実行可能ファイルをコンテナに追加して実行することができました。
 1. 攻撃者はインターネットからこれらのものをダウンロードすることができました（このPodはそのEgressを介してインターネット上のあらゆる場所に到達することができたため）。
-1. 私たちのサービスの ServiceAccount は過剰にプロビジョニングされており、K8s API を呼び出して他のワークロードを起動することができました（本来これは必要ありません）。
+1. 私たちのサービスの ServiceAccount は過剰な権限でプロビジョニングされており、K8s API を呼び出して他のワークロードを起動することができました（本来これは必要ありません）。
     1. `kubectl get rolebindings -o yaml -n security-playground && kubectl get roles -o yaml -n security-playground` を実行して、デフォルトの ServiceAccount に以下のルール/パーミッションでバインドされた Role があることを確認します：
         ```
         rules:
@@ -146,10 +143,10 @@ Sysdig AgentはどのLinuxマシンにもインストールすることができ
     1. 上記はClusterRoleではなくRoleでした - つまり、できることはこのNamespace内に限られるということです。しかし、Namespaceの中で完全な管理者として与えられるダメージはたくさんあります！
 1. 攻撃者はPod内から、EKSノードだけを対象としたEC2メタデータのエンドポイント（169.254.0.0/16）に到達できました。
 
-これらはすべて修正できます：
+これらは以下の方法ですべて修正できます：
 * ワークロードの設定（Kubernetesの新しい[Pod Security Admission](https://kubernetes.io/docs/concepts/security/pod-security-admission/)で設定を強制できるようになりました。）
 * Sysdig SecureのContainer Drift防止機能を利用できます。
-* そして残りは、インターネットへのEgressネットワーク・アクセスを制御します。
+* そして残りは、インターネットへのEgressネットワークアクセスを制御します。
 
 そして、この3つをすべて実行すれば、（単に攻撃を検知するだけでなく）攻撃全体を防ぐことができます！
 
@@ -362,18 +359,13 @@ Center for Internet Security (CIS)は、EKSを含む多くの一般的なリソ�
 
 1. SysdigのUIを開きます。
 1. **Compliance**に移動し、次に**Overview**に移動します。
-1. [Team and Zone-based authorization](https://docs.sysdig.com/en/docs/sysdig-secure/policies/zones/)を使用して、チームが自分のクラスタ/ゾーンのみを参照できるように設定してあります。
-1. **CIS Amazon Elastic Kubernetes Service Benchmark**をクリックします（これはあなたのZoneに対して設定した唯一のコンプライアンス標準ですが、NIST、SOC2、PCIDSSなど他にも多くのコンプライアンス標準があります）。
+1. [TeamとZoneベースの権限](https://docs.sysdig.com/en/docs/sysdig-secure/policies/zones/)を使用して、チームが自分のクラスタ/ゾーンのみを参照できるように設定してあります。
+1. **CIS Amazon Elastic Kubernetes Service Benchmark**をクリックします（これはあなたのZoneに対して設定したコンプライアンス標準の一つですが、他にもNIST、SOC2、PCIDSSなど多くのコンプライアンス標準があります）。
     1. ![](instruction-images/posture1.png)
 1. ここには、攻撃を防ぐためのコントロールがいくつかあります。
 1. それぞれの**Show Results**リンクをクリックすると、失敗したリソースのリストが表示されます。その後、**security-playground**リソースの隣にある**View Remediation**をクリックすると、修正手順を確認することができます：
-    1. 4.2.6 Minimize the admission of root containers
-        1. Container with RunAsUser root or not set
-        1. Container permitting root
     1. 4.2.1 Minimize the admission of privileged containers
         1. Container running as privileged
-    1. ![](instruction-images/posture2.png)
-    1. ![](instruction-images/posture3.png)
 
 もし、**security-playground**のこれらの設定がCISのEKS Benchmarkをパスするように設定されていたら、先ほどテストした **security-playground-unprivileged**ワークロードと同じようになります。
 
