@@ -15,7 +15,7 @@ Sysdigのハンズオンワークショップへようこそ。このワーク�
 講師から IAM ユーザー名とパスワードを受け取っているはずです。自分の環境にサインインするには
 
 1. ウェブブラウザを開き、https://sysdig-kraken-hunter-ap.signin.aws.amazon.com/console/ にアクセスします。
-1. プロンプトが表示されたら、AWS Account IDに **sysdig-sales-engineering** と入力されていることを確認します。
+1. プロンプトが表示されたら、AWS Account IDに **sysdig-kraken-hunter-ap** と入力されていることを確認します。
 1. 提供された IAM ユーザー名とパスワードを入力し、**Sign in** ボタンをクリックします。
     1. ![](instruction-images/awslogin.png)
 1. コンソール右上のドロップダウンから **Sydney** リージョンを選択します。
