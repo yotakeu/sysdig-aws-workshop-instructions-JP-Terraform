@@ -238,13 +238,13 @@ kubectl describe namespace security-playground-restricted
 
 このように、Sysdig の Drift Control とマルウェア検知だけでなく、ワークロードのポスチャーの修正を組み合わせることで、多くの一般的な攻撃を防ぐことができます！
 
-最後に、security-playground-restricted を変更して、security-playground のようにセキュリティを弱体化させるテストをしてみましょう。以下のコマンドを実行して、安全でないコンテナイメージとPodSpecをそのネームスペースにデプロイしてみてください。
+最後に、以下のコマンドを実行して、安全でないコンテナイメージとPodSpecを**security-playground-restricted**ネームスペースにデプロイしてみてください。
 
 ```
-kubectl apply -f security-playground-test.yaml
+kubectl apply -f 01-cfg-security-playground-test.yaml
 ```
 
-**security-playground-restricted**ネームスペースではPSAで制限されているため許可されないと警告されていることに注目してください。
+**security-playground-restricted**ネームスペースではPSA(Pod Security Admission)で制限されているため許可されないと警告されていることに注目してください。
 ![](instruction-images/psa.png)
 
 また、上記コマンドでDeploymentにPodを作成させていますが、そのDeployment（実際にはそのReplicaSet）はPodを起動できません。
@@ -253,9 +253,7 @@ kubectl apply -f security-playground-test.yaml
 kubectl events security-playground -n security-playground-restricted
 ```
 
-このような事象に遭遇した場合に、なぜPodが起動しないのかと頭を悩ませるよりも、実行時にこのようなことが起こる（そしてPodSpecを修正する必要がある）ことを、パイプラインのもっと早い段階で開発者に伝えておくべきです。
-
-この表は、このワークロードを修正するためのテストをまとめたものです：
+以下の表は、このワークロードを修正するためのテストをまとめたものです：
 
 |example-curl.shでの悪用|example-curl|security-playground|security-playground-restricted|security-playground-restricted + container driftブロック|security-playground-restricted + マルウェアブロック|
 |-|-|-|-|-|-|
@@ -272,110 +270,7 @@ kubectl events security-playground -n security-playground-restricted
 
 *そして9は、IDMSv2の1ホップへの制限によってブロックできる可能性があります。
 
-## モジュール 2 - ランタイム脅威の検知と防御（クラウド/AWS）
-
-Sysdigのランタイム脅威検知は、LinuxカーネルのシステムコールとKubernetesの監査証跡に限定されません。AWSのCloudTrail（同様に　Azure、GCP、Okta、GitHubなど）に対してエージェントレスでランタイム脅威を検知することもできます！エージェントレスというのは、CloudTrailを監視するFalcoがSysdigのSaaSバックエンドで実行されることを意味します。オプションとして[Cloud Connector](https://docs.sysdig.com/en/docs/installation/sysdig-secure/connect-cloud-accounts/aws/legacy/)と呼ばれるお客様のアカウントでエージェントを実行することも可能ですが、ほとんどのお客様はSysdigがサービスとしてSaaS側で行うことを好まれます。
-
-EKSとAWS環境の両方をカバーすることがなぜ重要なのか、AWSのCloudTrail検知を簡単に見てみましょう。
-
-### AWS IAM Roles for Service Accounts (IRSA)
-AWS EKSには、[IAM Roles for Service Accounts (IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) と呼ばれる、PodにAWS APIへのアクセス権を与える仕組みがあります。要するに、これはKubernetesの特定のサービスアカウントをAWSのIAMロールにバインドするもので、実行時にKubernetesサービスアカウントを利用するPodに、AWS IAMロールを利用するための認証情報を自動的にマウントします。
-
-**security-playground**ネームスペースの**irsa**サービスアカウントには、**Action": "s3:*"** ポリシーが適用されています。以下のコマンドを実行すると、**irsa**サービスアカウントのAnnotationが表示され、バインドされたAWS IAMロールのARNを確認できます：
-
-```
-kubectl get serviceaccount irsa -n security-playground -o yaml
-```
-
-IAM RoleのARNから辿ることで確認できますが、このIAM Roleは次のようなインラインポリシーを持ちます。よく見かける、s3サービス用のものです（実際には、バケット自体だけでなくコンテンツもカバーするために2つあります）。これは、単一のバケットResourceに適切にスコープされており、ないよりはましですが、なぜこのサービスのための "*" が悪い考えなのかがわかるでしょう。
-
-```
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": "s3:*",
-            "Resource": "arn:aws:s3:::attendeestack1-bucket83908e77-1d84qdfaymy9u",
-            "Effect": "Allow"
-        },
-        {
-            "Action": "s3:*",
-            "Resource": "arn:aws:s3:::attendeestack1-bucket83908e77-1d84qdfaymy9u/*",
-            "Effect": "Allow"
-        }
-    ]
-}
-```
-
-信頼関係という点では、このロールは、AWS IAMと統合するために固有のOIDCプロバイダを割り当てられたEKSクラスタ内の、 **security-playground**ネームスペース内の **irsa**サービスアカウントによってのみ引き受けられます。
-
-```
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "Federated": "arn:aws:iam::090334159717:oidc-provider/oidc.eks.ap-southeast-2.amazonaws.com/id/25A0C359024FB4B509E838B84988ABB0"
-            },
-            "Action": "sts:AssumeRoleWithWebIdentity",
-            "Condition": {
-                "StringEquals": {
-                    "oidc.eks.ap-southeast-2.amazonaws.com/id/25A0C359024FB4B509E838B84988ABB0:aud": "sts.amazonaws.com",
-                    "oidc.eks.ap-southeast-2.amazonaws.com/id/25A0C359024FB4B509E838B84988ABB0:sub": "system:serviceaccount:security-playground:irsa"
-                }
-            }
-        }
-    ]
-}
-```
-
-### Exploit
-実行時にAWS CLIをコンテナにインストールし、いくつかのコマンドを実行すると、PodにIRSAロールが割り当てられているかどうかがわかります。/rootに**example-curls-bucket-public.sh**ファイルがあるので、
-```
-cat 02-01-example-curls-bucket-public.sh
-```
-で内容を確認して、
-```
-./02-01-example-curls-bucket-public.sh
-```
-を実行します。
-
-AWS CLIのインストールは成功しましたが、S3の変更はアクセス権がないので失敗します（エラーは表示されません）。AWSのS3コンソールで自身のAttendee番号のバケットをクリックしてPermissionsタブを見ると、パブリックに変更されていません。
-<img src=instruction-images/bucketpublic1.png width=50%>
-
-security-playground Deploymentのマニフェストを更新し、これまで使用していた**default**のサービスアカウントではなく、この**irsa**サービスアカウントを使用するようにしましょう。この変更を適用するには、
-```
-kubectl apply -f security-playground-irsa.yaml
-```
-を実行します。ここで、
-```
-./example-curls-bucket-public.sh
-```
-を再実行すると、今度はうまくいきます！
-
-S3コンソールでこのバケットを見ると、今度はバケット（とそのすべてのコンテンツ）がパブリックになっていることがわかるでしょう（そして、攻撃者はS3のパブリックAPIからすぐにダウンロードすることができます）！
-<img src=instruction-images/bucketpublic2.png width=50%>
-
-### Sysdigによる検知
-
-ホスト側では、AWSに対して実行されているコマンドを含む多くの**Drift Detections**が表示されます。これはAWS CLIをイメージに含めるべきでないもっともな理由です！![](instruction-images/s3drift.png)
-
-**Threats > Activity > Cloud**に移動して**Events**タブを表示すると、AWS API側では下記イベントで、バケットが公開されることに対する保護が削除されただけでなく、新しいBucket Policy(バケットを公開する)が適用されたことも確認できます。
-![](instruction-images/s3cloudevents.png)
-![](instruction-images/s3cloudevents2.png)
-
-### この攻撃を防ぐ方法/このワークロードを修正する方法
-
-このIRSAの例は、以下の方法で防ぐことができます：
-* IRSAのポリシーで、パブリックブロックの削除を許可したりバケットポリシー（ファイルなどの読み書き）を適用できてしまう s3* を使用するのではなく、よりきめ細かく最小特権を設定します。
-    * [Permissions Boundary](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html) や [Service Control Policies (SCPs)](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html) のようなものも、このような過剰な権限を持つロールが作成されないようにするために役立ちます。
-    * ![](https://docs.aws.amazon.com/images/IAM/latest/UserGuide/images/EffectivePermissions-scp-boundary-id.png)
-* SysdigでContainer Driftポリシーを使用し、AWS CLIを実行できないようにします（イメージに含まれていないことも確認します）。
-
-今回の例ではどちらを使っても防ぐことができますが、両方とも実施するのが理想的です。
-
-## モジュール 3 - ホストとコンテナの脆弱性管理
+## モジュール 2 - ホストとコンテナの脆弱性管理
 
 Linuxホストやコンテナイメージの脆弱性をスキャンするのに役立つツールやベンダーはたくさんあります。そして、ソリューションによっては、開発者のマシン、パイプライン、レジストリ、実行時など、さまざまな場所でスキャンしてくれます。Sysdigは、これらすべての場所で既知のCVEをスキャンできます。そして、実行時にスキャンする場合、私たちが追加したコンテキストは優先順位付けに本当に役立ちます！
 
@@ -415,7 +310,7 @@ Sysdig のランタイム脆弱性スキャンを確認するには、以下の�
 
 また、[レジストリ内のイメージをスキャンする機能](https://docs.sysdig.com/en/docs/installation/sysdig-secure/install-registry-scanner/) もありますが、このワークショップでは触れません。
 
-## モジュール4 - Kubernetesのポスチャー/コンプライアンス（設定ミスの修正など）
+## モジュール3 - Kubernetesのポスチャー/コンプライアンス（設定ミスの修正など）
 
 モジュール1で学んだように、Kubernetes/EKSクラスタとその上のワークロードが適切に設定されていることは非常に重要です。これは、お客様のポスチャー（お客様のすべての設定を総合したもの）と、それらが様々な標準/ベンチマークに準拠しているかどうかに関するものであるため、「ポスチャー」または「コンプライアンス」と呼ばれます。
 
@@ -457,7 +352,7 @@ Invetoryは同じ情報を表示していますが、コンプライアンス標
 最後に、私たちに共通する課題の1つは、「特定のCVEを持つワークロードを確認するにはどうすればよいか?」ということです。下記スクリーンショットで使用しているフィルターは、「Vulnerability」セクションでは使用できません。ただし、ここ「Inventory」では使用できます。
 ![](instruction-images/inventory3.png)
 
-## モジュール5 - Riskとアタックパス
+## モジュール4 - Riskとアタックパス
 
 これまで、これらの各機能 (ランタイム脅威検知、脆弱性管理、およびポスチャ管理) をそれぞれの UI で個別に検討してきました。しかし、Sysdig は包括的なクラウド ネイティブ アプリケーション保護プラットフォーム (CNAPP) です。つまり、これらすべての機能とすべてのデータを1つにまとめて、完全なコンテキストをエンドツーエンドで視覚化し、優先順位を付けるのに役立ちます。
 
