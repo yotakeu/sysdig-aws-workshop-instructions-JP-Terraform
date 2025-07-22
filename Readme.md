@@ -136,7 +136,7 @@ Sysdigのハンズオンワークショップへようこそ。このワーク�
 
 Sysdig AgentはどのLinuxマシンにもインストールすることができ、このラボ環境ではEKSクラスタに加えてジャンプボックスにもインストールされています。つまり、ワークショップでこれまでに実行したすべての対話型コマンドはキャプチャされたことになります！もし誰かがEKSノードにSSHでアクセスしたり、Agentがインストールされている場所でコマンドを実行した場合も、同じようにキャプチャされます。
 
-これを確認するには、左側メニューの**Threats > Forensics > Activity Audit**に行きます。
+これを確認するには、左側メニューの**Threats > Investigate > Activity Audit**に行きます。
 ![](instruction-images/aa.png)
 その後、**cmd**の1つをクリックして詳細を確認してください。
 
@@ -218,7 +218,7 @@ kubectl describe namespace security-playground-restricted
 * ![](instruction-images/drift_prevent_policy.png)
   以下のコマンドを実行します。
   ```
-  ./01-03-example-curls-restricted-nodrift.s
+  ./01-03-example-curls-restricted-nodrift.sh
   ```
   同じcurlを実行しますが、直前の例のように制限されているワークロードに対して実行し、かつContainer Driftの防止（検知だけでなく）が有効になっています。
     1. Sysdig UI の **Threats > Activity > Kubernetes**  で結果のイベントを見ると、今回は Drift が検知されただけでなく、**防止**されたことがわかります。
