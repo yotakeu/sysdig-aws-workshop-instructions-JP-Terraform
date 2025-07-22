@@ -117,9 +117,9 @@ Sysdigのハンズオンワークショップへようこそ。このワーク�
 1. イベントを理解する
     1. **Threats > Activity > Kubernetes**画面に戻り、再び**Events**タブを表示します。最も古い/最初のイベントまでスクロールダウンし、それぞれの詳細/コンテキストをすべて明らかにするために、それぞれのイベントをクリックしてください。ここでピックアップしたものは以下の通りです：
         1. **Read sensitive file untrusted** - ウェブサービスが行うべきでない **/etc/shadow** ファイルの読み取り。
-        1. **Drift Detection** - 元のイメージにはなかった実行ファイルがコンテナに追加され、それが実行された。
+        1. **Binary Drift** - 元のイメージにはなかった実行ファイルがコンテナに追加され、それが実行された。
             1. 実行時にコンテナに変更を加えるのはベストプラクティスではありません。むしろ、新しいイメージをビルドし、イミュータブル（不変）パターンでサービスを再デプロイすべきです。
-        1. **Launch Package Management Process in Container** - **Drift Detection**と同様に、実行中のコンテナでapt/yum/dnfを使用してパッケージを追加または更新すべきではありません。その代わりに、コンテナイメージのビルドプロセスの一部として、**Dockerfile**で実行してください。
+        1. **Suspicious network tool downloaded and launched in container** - **Binary Drift**と同様に、実行中のコンテナでapt/yum/dnfを使用してパッケージを追加または更新すべきではありません。その代わりに、コンテナイメージのビルドプロセスの一部として、**Dockerfile**で実行してください。
         1. **Contact EC2 Instance Metadata Service From Container** - EKS Podsは、[IAM Roles for Service Accounts (IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) などの他の手段を使ってAWSとやり取りする必要があります。その代わりにノードを経由して認証情報を使用するのは疑わしい行動です。
         1. **Malware Detection** - Sysdigは脅威フィードから多くのマルウェアのファイル名とハッシュを探し出します。ここで検知されたクリプトマイナーのxmrigも対象の一つです。
             1. マルウェアの実行をブロックすることもできます！（この後のラボで実際に試します）
