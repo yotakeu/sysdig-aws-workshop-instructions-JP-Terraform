@@ -353,7 +353,7 @@ kubectl get serviceaccount irsa -n security-playground -o yaml
 
 ### Sysdigによる検知
 
-ホスト側では、AWSに対して実行されているコマンドを含む多くの**Binary Drift**が表示されます。これはAWS CLIをイメージに含めるべきでないもっともな理由です！![](instruction-images/s3drift.png)
+**Threats > Activity > Kubernetes** に移動すると、ホスト側ではAWSに対して実行されているコマンドを含む多くの**Binary Drift**が表示されます。これはAWS CLIをイメージに含めるべきでないもっともな理由です！![](instruction-images/s3drift.png)
 
 **Threats > Activity > Cloud**に移動して**Events**タブを表示すると、AWS API側では下記イベントで、バケットが公開されることに対する保護が削除されただけでなく、新しいBucket Policy(バケットを公開する)が適用されたことも確認できます。
 ![](instruction-images/s3cloudevents.png)
