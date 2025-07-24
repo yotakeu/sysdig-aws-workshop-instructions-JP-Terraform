@@ -347,7 +347,7 @@ kubectl get serviceaccount irsa -n security-playground -o yaml
 
 ここで、
 ```
-./example-curls-bucket-public.sh
+./02-01-example-curls-bucket-public.sh
 ```
 を再実行すると、今度はうまくいきます！（画面に成功は表示されません）。**Threats > Activity > Cloud**に移動して**Summary**タブを表示すると、自分のユーザー名と同じS3バケットに対するイベントが検知されたことが確認できます（検知されていない場合はUI画面をリロードしてください）。
 
