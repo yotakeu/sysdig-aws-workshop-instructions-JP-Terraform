@@ -440,12 +440,11 @@ Invetoryは同じ情報を表示していますが、コンプライアンス標
 
 画面左側のメニューから **Inventory > Resources** をクリックします。左側のフィルターメニューから **Category > Compute** の **in** をクリックします。
 
-ここでは、**security-playground** のデプロイメントに注目し、まずそのポスチャーがどうなっているかを確認します。
+ここでは、**security-playground** のデプロイメントに注目し、まずそのポスチャーがどうなっているかを **Configuration Findings** で確認します。
 ![](instruction-images/inventory1.png)
 
 このビュー内で、クリックして先ほどと同じ修復手順に進むこともできます。
 ![](instruction-images/inventory4.png)
-![](instruction-images/inventory5.png)
 
 また、インベントリでは、次のタブで脆弱性情報も参照できます。
 ![](instruction-images/inventory2.png)
